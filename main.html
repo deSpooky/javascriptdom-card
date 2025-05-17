@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>карточки карточки</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    .container {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 300px;
+    }
+    input, select {
+      padding: 5px;
+      font-size: 1em;
+    }
+    .card-preview {
+      width: 300px;
+      height: 180px;
+      border-radius: 15px;
+      padding: 20px;
+      background: #dbdbdb;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .number, .holder, .expiry {
+      font-size: 1.1em;
+      width: 100%;
+    }
+    #previewBankLogo {
+      height: 30px;
+      margin-bottom: 10px;
+    }
+    #previewTypeLogo {
+      height: 25px;
+      align-self: flex-end;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    table {
+      margin-top: 30px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <form id="cardForm">
+    <select name="bank" required>
+      <option value="Сбербанк">Сбербанк</option>
+      <option value="Т-Банк">Т-Банк</option>
+      <option value="Альфа-банк">Альфа-банк</option>
+    </select>
+    <select name="type">
+      <option value="VISA">VISA</option>
+      <option value="MasterCard">MasterCard</option>
+      <option value="МИР">МИР</option>
+    </select>
+    <input type="text" name="number" placeholder="Номер карты (16 цифр)" maxlength="16" required pattern="\d{16}">
+    <input type="text" name="holder" placeholder="Имя держателя" maxlength="21" required>
+    <input type="month" name="expiry" required>
+    <button type="submit">Добавить</button>
+  </form>
+
+  <div class="card-preview" id="cardPreview">
+    <img id="previewBankLogo" src="icon_sber-01.png" alt="Банк">
+    <div class="number" id="previewNumber">0000 0000 0000 0000</div>
+    <div class="holder" id="previewHolder">Имя</div>
+    <div class="expiry" id="previewExpiry">MM/YY</div>
+    <div id="previewTypeLogo">Тип карты</div>
+  </div>
+</div>
+
+<table id="cardTable">
+  <thead>
+    <tr>
+      <th>Банк</th>
+      <th>Тип</th>
+      <th>Номер</th>
+      <th>Держатель</th>
+      <th>Срок</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+  const form = document.getElementById('cardForm')
+  const tableBody = document.querySelector('#cardTable tbody')
+
+  const previewBankLogo = document.getElementById('previewBankLogo')
+  const previewTypeLogo = document.getElementById('previewTypeLogo')
+  const previewNumber = document.getElementById('previewNumber')
+  const previewHolder = document.getElementById('previewHolder')
+  const previewExpiry = document.getElementById('previewExpiry')
+
+  const bankLogos = {
+    'Сбербанк': 'icon_sber-01.png',
+    'Т-Банк': 'logo-tbank.png',
+    'Альфа-банк': 'logo-alphabank.png'
+  }
+
+  function formatCardNumber(num) {
+    return num.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim()
+  }
+
+  function updatePreview() {
+    const { bank, type, number, holder, expiry } = form.elements
+
+    if (bank.value && bankLogos[bank.value]) {
+      previewBankLogo.src = bankLogos[bank.value]
+      previewBankLogo.alt = bank.value
+    } else {
+      previewBankLogo.src = ''
+      previewBankLogo.alt = 'Банк'
+    }
+
+    previewTypeLogo.textContent = type.value || 'Тип карты'
+    previewNumber.textContent = formatCardNumber(number.value) || '0000 0000 0000 0000'
+    previewHolder.textContent = holder.value || 'Имя'
+
+    if (expiry.value) {
+      const [year, month] = expiry.value.split('-')
+      previewExpiry.textContent = `${month}/${year.slice(2)}`
+    } else {
+      previewExpiry.textContent = 'MM/YY'
+    }
+  }
+
+  form.addEventListener('input', updatePreview)
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault()
+
+    const { bank, type, number, holder, expiry } = form.elements
+    const formattedNumber = formatCardNumber(number.value)
+    const [year, month] = expiry.value.split('-')
+    const formattedExpiry = `${month}/${year.slice(2)}`
+
+    const row = document.createElement('tr')
+    row.innerHTML = `
+      <td>${bank.value}</td>
+      <td>${type.value}</td>
+      <td>${formattedNumber}</td>
+      <td>${holder.value}</td>
+      <td>${formattedExpiry}</td>
+    `
+    tableBody.appendChild(row)
+
+    form.reset()
+    updatePreview()
+  })
+
+  updatePreview()
+</script>
+
+</body>
+</html>
